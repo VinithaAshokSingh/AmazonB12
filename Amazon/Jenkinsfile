@@ -1,1 +1,46 @@
-Add feature 1
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "📥 Checking out source code from Git..."
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "🔧 Building the project..."
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "🧪 Running Test Cases..."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "🚀 Deploying the Application..."
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                echo "🧹 Cleaning Workspace..."
+                cleanWs()
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Build Succeeded. Pipeline Completed Successfully!"
+        }
+        failure {
+            echo "❌ Build Failed. Please Check Errors!"
+        }
+    }
+}
+
