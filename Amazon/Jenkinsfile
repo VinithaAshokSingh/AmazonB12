@@ -1,1 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo "Building the project from branch: ${env.BRANCH_NAME}"
+                sh "mvn clean install"
+            }
+        }
+        stage('Test') {
+            steps {
+                echo "Running tests..."
+                sh "mvn test"
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'prod') {
+                        echo "Deploying to production server..."
+                    } else if (env.BRANCH_NAME == 'qa') {
+                        echo "Deploying to QA environment..."
+                    } else {
+                        echo "Skipping deploy for non-deploy branch"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✔ Build Successful!"
+        }
+        failure {
+            echo "❌ Build Failed!"
+        }
+    }
+}
 
