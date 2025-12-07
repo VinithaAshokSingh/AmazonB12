@@ -1,41 +1,74 @@
 pipeline {
     agent any
+    |
+    tools { 
+        maven 'MAVEN_HOME'        // Configure Maven under Manage Jenkins → Global Tool Config
+        jdk 'JAVA_HOME'           // Configure Java under Global Tool Config
+    }
+
+    triggers {
+        githubPush()              // Trigger through GitHub webhook
+    }
 
     stages {
+        
+        stage('Checkout') {
+            steps {
+                echo "Fetching source code from Git..."
+                git branch: 'master', url: 'https://github.com/VinithaAshokSingh/AmazonB12.git'
+            }
+        }
+
         stage('Build') {
             steps {
-                echo "Building the project from branch: ${env.BRANCH_NAME}"
-                sh "mvn clean install"
+                echo "Building the application..."
+                sh 'mvn clean compile'
             }
         }
+
         stage('Test') {
             steps {
-                echo "Running tests..."
-                sh "mvn test"
+                echo "Running Unit Tests..."
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit '**/surefire-reports/*.xml'
+                }
             }
         }
+
+        stage('Package') {
+            steps {
+                echo "Packaging into a JAR/WAR..."
+                sh 'mvn package -DskipTests'
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true 
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
-                script {
-                    if (env.BRANCH_NAME == 'prod') {
-                        echo "Deploying to production server..."
-                    } else if (env.BRANCH_NAME == 'qa') {
-                        echo "Deploying to QA environment..."
-                    } else {
-                        echo "Skipping deploy for non-deploy branch"
-                    }
-                }
+                echo "Deploying to server..."
+                // Example Deployment
+                // Copy artifact to tomcat/server (Change according to your infra)
+                sh '''
+                   echo "Deployment step can include SCP, SSH, Docker run, etc."
+                   # cp -r target/*.war /opt/tomcat/webapps/
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✔ Build Successful!"
+            echo "Build completed successfully "
         }
         failure {
-            echo "❌ Build Failed!"
+            echo "Build failed "
         }
     }
 }
-
